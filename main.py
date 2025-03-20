@@ -1,6 +1,5 @@
 import pygame
 
-# Inicializa o Pygame
 pygame.init()
 
 # Definições da tela
@@ -17,26 +16,35 @@ VERDE = (0, 255, 0)
 VERMELHO = (255, 0, 0)
 AMARELO = (255, 255, 0)
 AZUL = (0, 0, 255)
+CINZA = (150, 150, 150)
 
 # Mapa fixo
 mapa = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 5, 0, 0, 0, 0, 0, 0, 2, 1],
+    [1, 5, 0, 0, 0, 0, 0, 4, 2, 1],
     [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
     [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
     [1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
     [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 1, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 1, 0, 0, 4, 0, 0, 1, 0, 1],
     [1, 2, 0, 1, 1, 1, 0, 1, 3, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1, 1, 6, 1, 1, 1]
 ]
+
+# Encontra posição inicial dos inimigos
+inimigos = []
+for linha in range(len(mapa)):
+    for coluna in range(len(mapa[linha])):
+        if mapa[linha][coluna] == 4:
+            inimigos.append([coluna, linha])
+            mapa[linha][coluna] = 0
 
 # Encontra posição inicial do jogador
 for linha in range(len(mapa)):
     for coluna in range(len(mapa[linha])):
         if mapa[linha][coluna] == 5:
             jogador_x, jogador_y = coluna, linha
-            mapa[linha][coluna] = 0  # Remove o marcador do mapa
+            mapa[linha][coluna] = 0 
 
 # Função para desenhar o mapa
 def desenhar_mapa():
@@ -54,6 +62,8 @@ def desenhar_mapa():
                 pygame.draw.rect(tela, VERMELHO, (x + 15, y + 15, 20, 20))  # Armadilha
             elif mapa[linha][coluna] == 4:
                 pygame.draw.circle(tela, AZUL, (x + 25, y + 25), 15)  # Inimigo
+            elif mapa[linha][coluna] == 6:
+                pygame.draw.rect(tela, CINZA, (x, y, TAMANHO_BLOCO, TAMANHO_BLOCO))  # Inimigo
 
 # Função para mover o jogador
 def mover_jogador(dx, dy):
@@ -73,11 +83,25 @@ def mover_jogador(dx, dy):
         elif mapa[jogador_y][jogador_x] == 3:
             print("☠️ Caiu em uma armadilha!")
             mapa[jogador_y][jogador_x] = 0
+        
+        mover_inimigos()
 
+# Função para mover os inimigos aleatoriamente
+def mover_inimigos():
+    direcoes = [(0, 1), (0, -1)]
+    
+    for i in range(len(inimigos)):
+        x, y = inimigos[i]
+
+        for dx, dy in direcoes:
+            novo_x, novo_y = x + dx, y + dy
+            if 0 <= novo_x < len(mapa[0]) and 0 <= novo_y < len(mapa) and mapa[novo_y][novo_x] == 0:
+                inimigos[i] = [novo_x, novo_y]
+                break 
 # Loop principal
 rodando = True
 while rodando:
-    clock.tick(10)  # Define FPS
+    clock.tick(10)
 
     # Captura eventos
     for evento in pygame.event.get():
@@ -92,10 +116,23 @@ while rodando:
                 mover_jogador(-1, 0)
             if evento.key == pygame.K_RIGHT:
                 mover_jogador(1, 0)
+            if mapa[jogador_y][jogador_x] == 6:
+                print("✅ Você encontrou a saída!")
+                rodando = False
+
+    # Movimenta os inimigos
+    #mover_inimigos()
 
     # Desenha o jogo
     desenhar_mapa()
+
+    # Desenha o jogador
     pygame.draw.circle(tela, VERDE, (jogador_x * TAMANHO_BLOCO + 25, jogador_y * TAMANHO_BLOCO + 25), 15)
+    
+    # Desenha os inimigos
+    for inimigo_x, inimigo_y in inimigos:
+        pygame.draw.circle(tela, AZUL, (inimigo_x * TAMANHO_BLOCO + 25, inimigo_y * TAMANHO_BLOCO + 25), 15)
+
     pygame.display.flip()
 
 pygame.quit()
