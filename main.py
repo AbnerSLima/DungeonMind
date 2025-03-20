@@ -21,13 +21,13 @@ CINZA = (150, 150, 150)
 # Mapa fixo
 mapa = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 5, 0, 0, 0, 0, 0, 0, 2, 1],
+    [1, 5, 0, 0, 0, 0, 0, 0, 3, 1],
     [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
     [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
     [1, 0, 1, 1, 0, 1, 0, 4, 0, 1],
     [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
     [1, 1, 0, 0, 4, 0, 0, 1, 0, 1],
-    [1, 2, 0, 1, 1, 1, 0, 1, 3, 1],
+    [1, 2, 0, 1, 1, 1, 0, 1, 2, 1],
     [1, 1, 1, 1, 1, 1, 6, 1, 1, 1]
 ]
 
@@ -103,6 +103,12 @@ rodando = True
 while rodando:
     clock.tick(5)
 
+    # Guarda posição antiga do jogador
+    jogador_x_antigo, jogador_y_antigo = jogador_x, jogador_y
+    
+    # Guarda posição antiga dos inimigos
+    inimigos_anteriores = [{"x": inimigo["x"], "y": inimigo["y"]} for inimigo in inimigos]
+
     # Captura eventos
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -119,6 +125,16 @@ while rodando:
             if mapa[jogador_y][jogador_x] == 6:
                 print("✅ Você encontrou a saída!")
                 rodando = False
+                
+    # Verifica se o jogador encostou ou TROCOU de lugar com um inimigo
+    for i, inimigo in enumerate(inimigos):
+        if jogador_x == inimigo["x"] and jogador_y == inimigo["y"]:
+            print("🚨 Você foi capturado pelo inimigo! 🚨")
+            rodando = False
+        elif (jogador_x == inimigos_anteriores[i]["x"] and jogador_y == inimigos_anteriores[i]["y"] and
+              jogador_x_antigo == inimigo["x"] and jogador_y_antigo == inimigo["y"]):
+            print("🚨 Você foi capturado pelo inimigo! 🚨")
+            rodando = False
 
     # Desenha o jogo
     desenhar_mapa()
