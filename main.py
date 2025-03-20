@@ -21,10 +21,10 @@ CINZA = (150, 150, 150)
 # Mapa fixo
 mapa = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 5, 0, 0, 0, 0, 0, 4, 2, 1],
+    [1, 5, 0, 0, 0, 0, 0, 0, 2, 1],
     [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
     [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
-    [1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 1, 0, 4, 0, 1],
     [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
     [1, 1, 0, 0, 4, 0, 0, 1, 0, 1],
     [1, 2, 0, 1, 1, 1, 0, 1, 3, 1],
@@ -36,7 +36,7 @@ inimigos = []
 for linha in range(len(mapa)):
     for coluna in range(len(mapa[linha])):
         if mapa[linha][coluna] == 4:
-            inimigos.append([coluna, linha])
+            inimigos.append({"x": coluna, "y": linha, "direcao": -1})
             mapa[linha][coluna] = 0
 
 # Encontra posição inicial do jogador
@@ -86,22 +86,22 @@ def mover_jogador(dx, dy):
         
         mover_inimigos()
 
-# Função para mover os inimigos aleatoriamente
+# Função para mover os inimigos para cima e para baixo
 def mover_inimigos():
-    direcoes = [(0, 1), (0, -1)]
-    
-    for i in range(len(inimigos)):
-        x, y = inimigos[i]
+    for inimigo in inimigos:
+        novo_y = inimigo["y"] + inimigo["direcao"]
 
-        for dx, dy in direcoes:
-            novo_x, novo_y = x + dx, y + dy
-            if 0 <= novo_x < len(mapa[0]) and 0 <= novo_y < len(mapa) and mapa[novo_y][novo_x] == 0:
-                inimigos[i] = [novo_x, novo_y]
-                break 
+        # Verifica se o inimigo pode continuar na mesma direção
+        if 0 <= novo_y < len(mapa) and mapa[novo_y][inimigo["x"]] == 0:
+            inimigo["y"] = novo_y
+        else:
+            # Muda de direção ao atingir um obstáculo
+            inimigo["direcao"] *= -1
+
 # Loop principal
 rodando = True
 while rodando:
-    clock.tick(10)
+    clock.tick(5)
 
     # Captura eventos
     for evento in pygame.event.get():
@@ -120,9 +120,6 @@ while rodando:
                 print("✅ Você encontrou a saída!")
                 rodando = False
 
-    # Movimenta os inimigos
-    #mover_inimigos()
-
     # Desenha o jogo
     desenhar_mapa()
 
@@ -130,8 +127,8 @@ while rodando:
     pygame.draw.circle(tela, VERDE, (jogador_x * TAMANHO_BLOCO + 25, jogador_y * TAMANHO_BLOCO + 25), 15)
     
     # Desenha os inimigos
-    for inimigo_x, inimigo_y in inimigos:
-        pygame.draw.circle(tela, AZUL, (inimigo_x * TAMANHO_BLOCO + 25, inimigo_y * TAMANHO_BLOCO + 25), 15)
+    for inimigo in inimigos:
+        pygame.draw.circle(tela, AZUL, (inimigo["x"] * TAMANHO_BLOCO + 25, inimigo["y"] * TAMANHO_BLOCO + 25), 15)
 
     pygame.display.flip()
 
