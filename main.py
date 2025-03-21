@@ -18,6 +18,7 @@ AMARELO = (255, 255, 0)
 AZUL = (0, 0, 255)
 CINZA = (150, 150, 150)
 
+
 # Mapa fixo
 mapa = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -101,7 +102,7 @@ def mover_inimigos():
 # Loop principal
 rodando = True
 while rodando:
-    clock.tick(5)
+    clock.tick(10)
 
     # Guarda posição antiga do jogador
     jogador_x_antigo, jogador_y_antigo = jogador_x, jogador_y

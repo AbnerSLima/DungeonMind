@@ -1,13 +1,16 @@
-from . import agent
+from agent import DungeonEnv
+import numpy as np
 
-env = agent.SimpleGameEnv()  # Criando o ambiente da IA
-obs = env.reset()  # Reseta o jogo para o estado inicial
-print("Estado inicial:", obs)
+# Carregar ambiente e Q-table treinada
+env = DungeonEnv()
+q_table = np.load("q_table.npy")
 
-for _ in range(10):  # Testando 10 movimentos aleatórios
-    action = env.action_space.sample()  # Escolhe uma ação aleatória
-    obs, reward, done, _ = env.step(action)  # Aplica a ação no ambiente
-    print(f"Ação: {action}, Novo Estado: {obs}, Recompensa: {reward}")
-    
-    if done:  # Se o jogo acabou (exemplo: pegou um tesouro ou morreu), reinicia
-        obs = env.reset()
+estado = env.reset()
+done = False
+
+while not done:
+    env.render()
+    acao = np.argmax(q_table[estado[0], estado[1], :])
+    estado, _, done, _ = env.step(acao)
+
+print("✅ Agente finalizou a dungeon!")

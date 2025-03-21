@@ -1,72 +1,85 @@
 import gym
 import numpy as np
-import pygame
 from gym import spaces
 
-class SimpleGameEnv(gym.Env):
+class DungeonEnv(gym.Env):
     def __init__(self):
-        super(SimpleGameEnv, self).__init__()
-        
-        # Definir tamanho da tela e do jogador
-        self.width = 500
-        self.height = 500
-        self.player_size = 20
-        
-        # Criar ações (esquerda, direita, cima, baixo)
+        super(DungeonEnv, self).__init__()
+
+        self.mapa = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 5, 0, 0, 0, 0, 0, 0, 3, 1],
+            [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
+            [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
+            [1, 0, 1, 1, 0, 1, 0, 4, 0, 1],
+            [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
+            [1, 1, 0, 0, 4, 0, 0, 1, 0, 1],
+            [1, 2, 0, 1, 1, 1, 0, 1, 2, 1],
+            [1, 1, 1, 1, 1, 1, 6, 1, 1, 1]
+        ]
+
+        self.altura = len(self.mapa)
+        self.largura = len(self.mapa[0])
+
+        # Encontrar posição inicial do jogador
+        for linha in range(self.altura):
+            for coluna in range(self.largura):
+                if self.mapa[linha][coluna] == 5:
+                    self.jogador_x, self.jogador_y = coluna, linha
+                    self.mapa[self.jogador_y][self.jogador_x] = 0 
+
+        # Definir espaço de ações (4 direções)
         self.action_space = spaces.Discrete(4)
-        
-        # Estado (posição do jogador)
-        self.observation_space = spaces.Box(low=0, high=500, shape=(2,), dtype=np.int32)
-        
-        self.reset()
-    
+
+        # Espaço de observação (posição do jogador)
+        self.observation_space = spaces.Box(low=0, high=max(self.largura, self.altura), shape=(2,), dtype=np.int32)
+
     def reset(self):
-        # Posição inicial do jogador
-        self.player_x = self.width // 2
-        self.player_y = self.height // 2
-        return np.array([self.player_x, self.player_y])
-    
+        """ Reinicia o jogo e retorna o estado inicial """
+        self.jogador_x, self.jogador_y = 1, 1  # Posição inicial do jogador
+        return np.array([self.jogador_x, self.jogador_y])
+
     def step(self, action):
-        if action == 0:  # Esquerda
-            self.player_x -= 10
-        elif action == 1:  # Direita
-            self.player_x += 10
-        elif action == 2:  # Cima
-            self.player_y -= 10
-        elif action == 3:  # Baixo
-            self.player_y += 10
-        
-        # Manter dentro da tela
-        self.player_x = np.clip(self.player_x, 0, self.width - self.player_size)
-        self.player_y = np.clip(self.player_y, 0, self.height - self.player_size)
-        
-        # Criar recompensa (exemplo: manter-se no centro)
-        reward = -np.sqrt((self.player_x - self.width//2)**2 + (self.player_y - self.height//2)**2)
-        
-        # O jogo não tem fim por enquanto
-        done = False
-        
-        return np.array([self.player_x, self.player_y]), reward, done, {}
-    
+        """ Executa um passo no ambiente """
+        if action == 0:  # Cima
+            nova_x, nova_y = self.jogador_x, self.jogador_y - 1
+        elif action == 1:  # Baixo
+            nova_x, nova_y = self.jogador_x, self.jogador_y + 1
+        elif action == 2:  # Esquerda
+            nova_x, nova_y = self.jogador_x - 1, self.jogador_y
+        elif action == 3:  # Direita
+            nova_x, nova_y = self.jogador_x + 1, self.jogador_y
+        else:
+            nova_x, nova_y = self.jogador_x, self.jogador_y
+
+        # Checa se a nova posição é válida (não é parede)
+        if self.mapa[nova_y][nova_x] != 1:
+            self.jogador_x, self.jogador_y = nova_x, nova_y
+
+        # Definir recompensa
+        recompensa = -0.1  # Pequena penalidade para evitar movimentos aleatórios
+
+        if self.mapa[self.jogador_y][self.jogador_x] == 2:
+            recompensa = 10  # Pegou tesouro
+        elif self.mapa[self.jogador_y][self.jogador_x] == 3:
+            recompensa = -10  # Caiu em armadilha
+        elif self.mapa[self.jogador_y][self.jogador_x] == 4:
+            recompensa = -60  # Foi capturado
+        elif self.mapa[self.jogador_y][self.jogador_x] == 6:
+            recompensa = 50  # Saiu do labirinto!
+
+        estado = np.array([self.jogador_x, self.jogador_y])
+        game_over = self.mapa[self.jogador_y][self.jogador_x] == 6  # Saiu do mapa
+        return estado, recompensa, game_over, {}
+
     def render(self):
-        pygame.init()
-        screen = pygame.display.set_mode((self.width, self.height))
-        screen.fill((0, 0, 0))
-        pygame.draw.rect(screen, (0, 255, 0), (self.player_x, self.player_y, self.player_size, self.player_size))
-        pygame.display.flip()
-    
-    def close(self):
-        pygame.quit()
-
-# Criar ambiente
-env = SimpleGameEnv()
-
-# Criar agente aleatório
-for _ in range(100):
-    action = env.action_space.sample()  # Escolhe uma ação aleatória
-    state, reward, done, _ = env.step(action)
-    print(f'Ação: {action}, Estado: {state}, Recompensa: {reward}')
-    env.render()
-    pygame.time.delay(100)
-
-env.close()
+        """ Renderiza o estado atual (apenas para depuração) """
+        for y, linha in enumerate(self.mapa):
+            linha_str = ""
+            for x, valor in enumerate(linha):
+                if x == self.jogador_x and y == self.jogador_y:
+                    linha_str += "J "
+                else:
+                    linha_str += str(valor) + " "
+            print(linha_str)
+        print("\n")
