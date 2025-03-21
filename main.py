@@ -17,7 +17,23 @@ VERMELHO = (255, 0, 0)
 AMARELO = (255, 255, 0)
 AZUL = (0, 0, 255)
 CINZA = (150, 150, 150)
+LARANJA = (255,69,0)
 
+pygame.font.init()
+fonte = pygame.font.Font(None, 36)  # Define o tamanho do texto
+
+mensagem = ""  # Variável para armazenar mensagens do jogo
+contador_mensagem = 0  # Timer para remover mensagens após um tempo
+
+def exibir_mensagem(texto):
+    global mensagem, contador_mensagem
+    mensagem = texto
+    contador_mensagem = 50  # Define tempo de exibição (~5 segundos)
+
+def desenhar_texto():
+    if mensagem:
+        texto_renderizado = fonte.render(mensagem, True, (LARANJA))
+        tela.blit(texto_renderizado, (10, ALTURA - 40))  # Exibe no canto inferior esquerdo
 
 # Mapa fixo
 mapa = [
@@ -80,9 +96,11 @@ def mover_jogador(dx, dy):
         # Interação com tesouros e armadilhas
         if mapa[jogador_y][jogador_x] == 2:
             print("💰 Pegou um tesouro!")
+            exibir_mensagem("Você encontrou um tesouro!")
             mapa[jogador_y][jogador_x] = 0
         elif mapa[jogador_y][jogador_x] == 3:
             print("☠️ Caiu em uma armadilha!")
+            exibir_mensagem("Você caiu em uma armadilha!")
             mapa[jogador_y][jogador_x] = 0
         
         mover_inimigos()
@@ -125,17 +143,20 @@ while rodando:
                 mover_jogador(1, 0)
             if mapa[jogador_y][jogador_x] == 6:
                 print("✅ Você encontrou a saída!")
-                rodando = False
+                exibir_mensagem("Você encontrou a saída!")
+                #rodando = False
                 
     # Verifica se o jogador encostou ou TROCOU de lugar com um inimigo
     for i, inimigo in enumerate(inimigos):
         if jogador_x == inimigo["x"] and jogador_y == inimigo["y"]:
             print("🚨 Você foi capturado pelo inimigo! 🚨")
-            rodando = False
+            exibir_mensagem("Você foi capturado pelo inimigo!")
+            #rodando = False
         elif (jogador_x == inimigos_anteriores[i]["x"] and jogador_y == inimigos_anteriores[i]["y"] and
               jogador_x_antigo == inimigo["x"] and jogador_y_antigo == inimigo["y"]):
             print("🚨 Você foi capturado pelo inimigo! 🚨")
-            rodando = False
+            exibir_mensagem("Você foi capturado pelo inimigo!")
+            #rodando = False
 
     # Desenha o jogo
     desenhar_mapa()
@@ -147,6 +168,13 @@ while rodando:
     for inimigo in inimigos:
         pygame.draw.circle(tela, AZUL, (inimigo["x"] * TAMANHO_BLOCO + 25, inimigo["y"] * TAMANHO_BLOCO + 25), 15)
 
+    # Reduz tempo de exibição da mensagem
+    if contador_mensagem > 0:
+        contador_mensagem -= 1
+    else:
+        mensagem = ""
+
+    desenhar_texto()
     pygame.display.flip()
 
 pygame.quit()
