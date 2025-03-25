@@ -1,5 +1,4 @@
 import time
-import pickle
 import numpy as np
 from IA.agent import DungeonEnv
 

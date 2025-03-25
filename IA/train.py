@@ -25,7 +25,7 @@ for episodio in range(num_episodios):
     estado = env.reset()
     done = False
     while not done:
-        env.render()
+        #env.render()
         # Escolher ação (exploração vs. exploração)
         if random.uniform(0, 1) < exploracao:
             acao = env.action_space.sample()
