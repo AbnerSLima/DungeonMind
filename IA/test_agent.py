@@ -1,4 +1,4 @@
-from agent import DungeonEnv
+from IA.agent import DungeonEnv
 import numpy as np
 
 # Carregar ambiente e Q-table treinada

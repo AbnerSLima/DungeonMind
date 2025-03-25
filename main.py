@@ -9,6 +9,8 @@ tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("DungeonMind - Explorador de Masmorra")
 clock = pygame.time.Clock()
 
+jogador = pygame.image.load("assets/jogador.png")
+
 # Cores
 BRANCO = (255, 255, 255)
 PRETO = (0, 0, 0)

@@ -11,7 +11,7 @@ desconto = 0.9
 exploracao = 1.0
 decaimento_exploracao = 0.995
 
-# Tentar carregar a tabela Q existente
+# Carregar a tabela Q existente
 if os.path.exists("q_table.npy"):
     q_table = np.load("q_table.npy")
     print("✅ Tabela Q carregada!")
@@ -25,9 +25,10 @@ for episodio in range(num_episodios):
     estado = env.reset()
     done = False
     while not done:
+        env.render()
         # Escolher ação (exploração vs. exploração)
         if random.uniform(0, 1) < exploracao:
-            acao = env.action_space.sample()  # Escolhe aleatoriamente
+            acao = env.action_space.sample()
         else:
             acao = np.argmax(q_table[estado[0], estado[1], :])
 
@@ -45,6 +46,7 @@ for episodio in range(num_episodios):
 
     if episodio % 100 == 0:
         print(f"🏆 Episódio {episodio} - Exploração: {exploracao:.2f}")
+    
 
 # Salvar a Tabela Q para continuar treinando depois
 np.save("q_table.npy", q_table)
