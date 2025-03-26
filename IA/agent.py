@@ -1,6 +1,6 @@
 import gym
-import numpy as np
 from gym import spaces
+import numpy as np
 
 class DungeonEnv(gym.Env):
     def __init__(self):
