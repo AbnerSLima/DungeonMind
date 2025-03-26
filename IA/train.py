@@ -3,7 +3,9 @@ import random
 import numpy as np
 from IA.agent import DungeonEnv
 
-# Criando o ambiente
+import matplotlib.pyplot as plt
+import pandas as pd
+
 env = DungeonEnv()
 num_episodios = 300
 taxa_aprendizado = 0.9
@@ -21,11 +23,17 @@ else:
 # Criando a Tabela Q
 q_table = np.zeros((env.largura, env.altura, env.action_space.n))
 
-for episodio in range(num_episodios):
+# Variáveis para o relatório
+total_recompensas = 0
+total_passos = 0
+
+for episodio in range(1, num_episodios + 1):
     estado = env.reset()
     done = False
+    recompensa_episodio = 0
+    passos = 0
+
     while not done:
-        #env.render()
         # Escolher ação (exploração vs. exploração)
         if random.uniform(0, 1) < exploracao:
             acao = env.action_space.sample()
@@ -40,15 +48,30 @@ for episodio in range(num_episodios):
             taxa_aprendizado * (recompensa + desconto * np.max(q_table[novo_estado[0], novo_estado[1], :]))
 
         estado = novo_estado
+        recompensa_episodio += recompensa
+        passos += 1
+
+    # Atualizar métricas do relatório
+    total_recompensas += recompensa_episodio
+    total_passos += passos
 
     # Diminuir a exploração ao longo do tempo
     exploracao = max(0.1, exploracao * decaimento_exploracao)
 
+    # Gerar relatório a cada 100 episódios
     if episodio % 100 == 0:
-        print(f"🏆 Episódio {episodio} - Exploração: {exploracao:.2f}")
-    
+        recompensa_media = total_recompensas / 100
+        passos_medios = total_passos / 100
+        print(f"🏆 Episódio {episodio}")
+        print(f"🔍 Exploração: {exploracao:.2f}")
+        print(f"📊 Recompensa Média: {recompensa_media:.2f}")
+        print(f"🚶 Passos Médios por Episódio: {passos_medios:.2f}\n")
 
-# Salvar a Tabela Q para continuar treinando depois
+        # Resetar métricas
+        total_recompensas = 0
+        total_passos = 0
+
+# Salvar a Tabela Q
 np.save("q_table.npy", q_table)
 print("💾 Tabela Q salva!")
 print("Treinamento concluído! 🚀")
