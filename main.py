@@ -1,10 +1,17 @@
 import pygame
+import numpy as np
+from IA.agent import DungeonEnv
 
 pygame.init()
 
 # Definições da tela
 LARGURA, ALTURA = 500, 500
 TAMANHO_BLOCO = 50
+
+TAMANHO_CELULA = 50
+LARGURA_TELA = 10 * TAMANHO_CELULA
+ALTURA_TELA = 9 * TAMANHO_CELULA
+
 tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("DungeonMind - Explorador de Masmorra")
 clock = pygame.time.Clock()
@@ -17,6 +24,16 @@ VERMELHO = (255, 0, 0)
 AMARELO = (255, 255, 0)
 CINZA = (150, 150, 150)
 LARANJA = (255,69,0)
+
+# Cores
+CORES = {
+    0: (200, 200, 200),  # Caminho livre (cinza claro)
+    1: (50, 50, 50),     # Parede (preto)
+    2: (255, 215, 0),    # Tesouro (amarelo)
+    3: (255, 0, 0),      # Armadilha (vermelho)
+    5: (0, 0, 255),      # Jogador (azul)
+    6: (0, 255, 0),      # Saída (verde)
+}
 
 pygame.font.init()
 fonte = pygame.font.Font(None, 36)  # Define o tamanho do texto
@@ -54,6 +71,9 @@ for linha in range(len(mapa)):
             jogador_x, jogador_y = coluna, linha
             mapa[linha][coluna] = 0 
 
+# Iniciar ambiente
+env = DungeonEnv()
+
 # Função para desenhar o mapa
 def desenhar_mapa():
     tela.fill(BRANCO)
@@ -72,63 +92,33 @@ def desenhar_mapa():
                 pygame.draw.rect(tela, CINZA, (x, y, TAMANHO_BLOCO, TAMANHO_BLOCO))  # Inimigo
 
 # Função para mover o jogador
-def mover_jogador(dx, dy):
-    global jogador_x, jogador_y
-
-    nova_x = jogador_x + dx
-    nova_y = jogador_y + dy
-
-    # Verifica se o movimento é permitido
-    if 0 <= nova_x < len(mapa[0]) and 0 <= nova_y < len(mapa) and mapa[nova_y][nova_x] != 1:
-        jogador_x, jogador_y = nova_x, nova_y
-
-        # Interação com tesouros e armadilhas
-        if mapa[jogador_y][jogador_x] == 2:
-            print("💰 Pegou um tesouro!")
-            exibir_mensagem("Você encontrou um tesouro!")
-            mapa[jogador_y][jogador_x] = 0
-        elif mapa[jogador_y][jogador_x] == 3:
-            print("☠️ Caiu em uma armadilha!")
-            exibir_mensagem("Você caiu em uma armadilha!")
-            mapa[jogador_y][jogador_x] = 0
-        
-
+def rodar_jogo():
 # Loop principal
-rodando = True
-while rodando:
+    rodando = True
     clock.tick(10)
+    estado = env.reset()
+    while rodando:
+        tela.fill((255, 255, 255))
+        desenhar_mapa()
+        
+        # Desenha o jogador
+        pygame.draw.circle(
+            tela, (0, 0, 255),
+            (estado[0] * TAMANHO_CELULA + TAMANHO_CELULA // 2, estado[1] * TAMANHO_CELULA + TAMANHO_CELULA // 2),
+            TAMANHO_CELULA // 3
+        )
 
-    # Captura eventos
-    for evento in pygame.event.get():
-        if evento.type == pygame.QUIT:
+        pygame.display.flip()
+        clock.tick(3)  # Controla a velocidade do jogo (3 passos por segundo)
+
+        # Escolher ação aleatória
+        acao = np.random.choice([0, 1, 2, 3])
+        estado, recompensa, game_over, _ = env.step(acao)
+
+        if game_over:
             rodando = False
-        elif evento.type == pygame.KEYDOWN:
-            if evento.key == pygame.K_UP:
-                mover_jogador(0, -1)
-            if evento.key == pygame.K_DOWN:
-                mover_jogador(0, 1)
-            if evento.key == pygame.K_LEFT:
-                mover_jogador(-1, 0)
-            if evento.key == pygame.K_RIGHT:
-                mover_jogador(1, 0)
-            if mapa[jogador_y][jogador_x] == 6:
-                print("✅ Você encontrou a saída!")
-                exibir_mensagem("Você encontrou a saída!")
-                #rodando = False
-                
-    # Desenha o jogo
-    desenhar_mapa()
 
-    # Desenha o jogador
-    pygame.draw.circle(tela, VERDE, (jogador_x * TAMANHO_BLOCO + 25, jogador_y * TAMANHO_BLOCO + 25), 15)
-    
-    # Reduz tempo de exibição da mensagem
-    if contador_mensagem > 0:
-        contador_mensagem -= 1
-    else:
-        mensagem = ""
+    pygame.quit()
 
-    desenhar_texto()
-    pygame.display.flip()
-
-pygame.quit()
+if __name__ == "__main__":
+    rodar_jogo()

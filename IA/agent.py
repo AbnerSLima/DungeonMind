@@ -95,3 +95,4 @@ class DungeonEnv(gym.Env):
                     linha_str += str(valor) + " "
             print(linha_str)
         print("\n")
+        
