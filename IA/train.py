@@ -3,9 +3,6 @@ import random
 import numpy as np
 from IA.agent import DungeonEnv
 
-import matplotlib.pyplot as plt
-import pandas as pd
-
 env = DungeonEnv()
 num_episodios = 300
 taxa_aprendizado = 0.9

@@ -9,28 +9,25 @@ tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("DungeonMind - Explorador de Masmorra")
 clock = pygame.time.Clock()
 
-jogador = pygame.image.load("assets/jogador.png")
-
 # Cores
 BRANCO = (255, 255, 255)
 PRETO = (0, 0, 0)
 VERDE = (0, 255, 0)
 VERMELHO = (255, 0, 0)
 AMARELO = (255, 255, 0)
-AZUL = (0, 0, 255)
 CINZA = (150, 150, 150)
 LARANJA = (255,69,0)
 
 pygame.font.init()
 fonte = pygame.font.Font(None, 36)  # Define o tamanho do texto
 
-mensagem = ""  # Variável para armazenar mensagens do jogo
-contador_mensagem = 0  # Timer para remover mensagens após um tempo
+mensagem = ""
+contador_mensagem = 0
 
 def exibir_mensagem(texto):
     global mensagem, contador_mensagem
     mensagem = texto
-    contador_mensagem = 50  # Define tempo de exibição (~5 segundos)
+    contador_mensagem = 50  # Define tempo de exibição
 
 def desenhar_texto():
     if mensagem:
@@ -43,20 +40,12 @@ mapa = [
     [1, 5, 0, 0, 0, 0, 0, 0, 3, 1],
     [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
     [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
-    [1, 0, 1, 1, 0, 1, 0, 4, 0, 1],
+    [1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
     [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 1, 0, 0, 4, 0, 0, 1, 0, 1],
+    [1, 1, 0, 0, 0, 0, 0, 1, 0, 1],
     [1, 2, 0, 1, 1, 1, 0, 1, 2, 1],
     [1, 1, 1, 1, 1, 1, 6, 1, 1, 1]
 ]
-
-# Encontra posição inicial dos inimigos
-inimigos = []
-for linha in range(len(mapa)):
-    for coluna in range(len(mapa[linha])):
-        if mapa[linha][coluna] == 4:
-            inimigos.append({"x": coluna, "y": linha, "direcao": -1})
-            mapa[linha][coluna] = 0
 
 # Encontra posição inicial do jogador
 for linha in range(len(mapa)):
@@ -79,8 +68,6 @@ def desenhar_mapa():
                 pygame.draw.circle(tela, AMARELO, (x + 25, y + 25), 10)  # Tesouro
             elif mapa[linha][coluna] == 3:
                 pygame.draw.rect(tela, VERMELHO, (x + 15, y + 15, 20, 20))  # Armadilha
-            elif mapa[linha][coluna] == 4:
-                pygame.draw.circle(tela, AZUL, (x + 25, y + 25), 15)  # Inimigo
             elif mapa[linha][coluna] == 6:
                 pygame.draw.rect(tela, CINZA, (x, y, TAMANHO_BLOCO, TAMANHO_BLOCO))  # Inimigo
 
@@ -105,30 +92,11 @@ def mover_jogador(dx, dy):
             exibir_mensagem("Você caiu em uma armadilha!")
             mapa[jogador_y][jogador_x] = 0
         
-        mover_inimigos()
-
-# Função para mover os inimigos para cima e para baixo
-def mover_inimigos():
-    for inimigo in inimigos:
-        novo_y = inimigo["y"] + inimigo["direcao"]
-
-        # Verifica se o inimigo pode continuar na mesma direção
-        if 0 <= novo_y < len(mapa) and mapa[novo_y][inimigo["x"]] == 0:
-            inimigo["y"] = novo_y
-        else:
-            # Muda de direção ao atingir um obstáculo
-            inimigo["direcao"] *= -1
 
 # Loop principal
 rodando = True
 while rodando:
     clock.tick(10)
-
-    # Guarda posição antiga do jogador
-    jogador_x_antigo, jogador_y_antigo = jogador_x, jogador_y
-    
-    # Guarda posição antiga dos inimigos
-    inimigos_anteriores = [{"x": inimigo["x"], "y": inimigo["y"]} for inimigo in inimigos]
 
     # Captura eventos
     for evento in pygame.event.get():
@@ -148,28 +116,12 @@ while rodando:
                 exibir_mensagem("Você encontrou a saída!")
                 #rodando = False
                 
-    # Verifica se o jogador encostou ou TROCOU de lugar com um inimigo
-    for i, inimigo in enumerate(inimigos):
-        if jogador_x == inimigo["x"] and jogador_y == inimigo["y"]:
-            print("🚨 Você foi capturado pelo inimigo! 🚨")
-            exibir_mensagem("Você foi capturado pelo inimigo!")
-            #rodando = False
-        elif (jogador_x == inimigos_anteriores[i]["x"] and jogador_y == inimigos_anteriores[i]["y"] and
-              jogador_x_antigo == inimigo["x"] and jogador_y_antigo == inimigo["y"]):
-            print("🚨 Você foi capturado pelo inimigo! 🚨")
-            exibir_mensagem("Você foi capturado pelo inimigo!")
-            #rodando = False
-
     # Desenha o jogo
     desenhar_mapa()
 
     # Desenha o jogador
     pygame.draw.circle(tela, VERDE, (jogador_x * TAMANHO_BLOCO + 25, jogador_y * TAMANHO_BLOCO + 25), 15)
     
-    # Desenha os inimigos
-    for inimigo in inimigos:
-        pygame.draw.circle(tela, AZUL, (inimigo["x"] * TAMANHO_BLOCO + 25, inimigo["y"] * TAMANHO_BLOCO + 25), 15)
-
     # Reduz tempo de exibição da mensagem
     if contador_mensagem > 0:
         contador_mensagem -= 1

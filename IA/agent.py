@@ -11,9 +11,9 @@ class DungeonEnv(gym.Env):
             [1, 5, 0, 0, 0, 0, 0, 0, 3, 1],
             [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
             [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
-            [1, 0, 1, 1, 0, 1, 0, 4, 0, 1],
+            [1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
             [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
-            [1, 1, 0, 0, 4, 0, 0, 1, 0, 1],
+            [1, 1, 0, 0, 0, 0, 0, 1, 0, 1],
             [1, 2, 0, 1, 1, 1, 0, 1, 2, 1],
             [1, 1, 1, 1, 1, 1, 6, 1, 1, 1]
         ]
@@ -63,8 +63,6 @@ class DungeonEnv(gym.Env):
             recompensa = 10
         elif self.mapa[self.jogador_y][self.jogador_x] == 3:
             recompensa = -10
-        elif self.mapa[self.jogador_y][self.jogador_x] == 4:
-            recompensa = -60
         elif self.mapa[self.jogador_y][self.jogador_x] == 6:
             recompensa = 50
 
