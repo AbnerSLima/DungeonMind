@@ -34,9 +34,14 @@ class DungeonEnv(gym.Env):
         # Espaço de observação
         self.observation_space = spaces.Box(low=0, high=max(self.largura, self.altura), shape=(2,), dtype=np.int32)
 
+        # Inicializar pontos
+        self.pontos_iniciais = 100
+        self.pontos = self.pontos_iniciais
+
     def reset(self):
         """ Reinicia o jogo e retorna o estado inicial """
         self.jogador_x, self.jogador_y = 1, 1 
+        self.pontos = self.pontos_iniciais  # Resetar pontos
         return np.array([self.jogador_x, self.jogador_y])
 
     def step(self, action):
@@ -56,18 +61,27 @@ class DungeonEnv(gym.Env):
         if self.mapa[nova_y][nova_x] != 1:
             self.jogador_x, self.jogador_y = nova_x, nova_y
 
+        # Penalidade de movimento
+        self.pontos -= 1
+        
         # Definir recompensa
-        recompensa = -0.1
+        recompensa = -1
 
-        if self.mapa[self.jogador_y][self.jogador_x] == 2:
-            recompensa = 10
-        elif self.mapa[self.jogador_y][self.jogador_x] == 3:
-            recompensa = -10
+        if self.mapa[self.jogador_y][self.jogador_x] == 2: # Tesouro
+            recompensa = 50
+            self.pontos += 50
+            self.mapa[self.jogador_y][self.jogador_x] = 0
+
+        elif self.mapa[self.jogador_y][self.jogador_x] == 3: # Armadilha
+            recompensa = -75
+
         elif self.mapa[self.jogador_y][self.jogador_x] == 6:
             recompensa = 50
 
+        # Game over se pontuação for 0 ou menos
+        game_over = self.pontos <= 0 or self.mapa[self.jogador_y][self.jogador_x] == 6
+
         estado = np.array([self.jogador_x, self.jogador_y])
-        game_over = self.mapa[self.jogador_y][self.jogador_x] == 6
         return estado, recompensa, game_over, {}
 
     def render(self):
