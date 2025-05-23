@@ -38,6 +38,9 @@ class DungeonEnv(gym.Env):
         self.pontos_iniciais = 100
         self.pontos = self.pontos_iniciais
 
+    def get_mapa(self):
+        return self.mapa
+
     def reset(self):
         """ Reinicia o jogo e retorna o estado inicial """
         self.jogador_x, self.jogador_y = 1, 1 

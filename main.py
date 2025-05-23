@@ -57,20 +57,12 @@ def desenhar_texto():
         mensagem = ""
 
 def desenhar_pontuacao(pontos):
-    texto_pontos = fonte.render(f"Score: {pontos}", True, (0, 0, 0))
+    texto_pontos = fonte.render(f"Score: {pontos}", True, (BRANCO))
     tela.blit(texto_pontos, (10, 10))  # Exibe no canto superior esquerdo
 
 # Mapa fixo
 mapa = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 5, 0, 0, 0, 0, 0, 0, 3, 1],
-    [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
-    [1, 0, 0, 0, 0, 3, 0, 0, 1, 1],
-    [1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
-    [1, 0, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 1, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 2, 0, 1, 1, 1, 0, 1, 2, 1],
-    [1, 1, 1, 1, 1, 1, 6, 1, 1, 1]
+
 ]
 
 # Encontra posição inicial do jogador
@@ -84,7 +76,7 @@ for linha in range(len(mapa)):
 env = DungeonEnv()
 
 # Função para desenhar o mapa
-def desenhar_mapa():
+def desenhar_mapa(mapa):
     tela.fill(BRANCO)
     for linha in range(len(mapa)):
         for coluna in range(len(mapa[linha])):
@@ -106,9 +98,11 @@ def rodar_jogo():
     rodando = True
     clock.tick(10)
     estado = env.reset()
+
     while rodando:
-        tela.fill((255, 255, 255))
-        desenhar_mapa()
+        tela.fill(BRANCO)
+        mapa = env.get_mapa()
+        desenhar_mapa(mapa)
         
         # Desenha o jogador
         pygame.draw.circle(
@@ -127,18 +121,21 @@ def rodar_jogo():
         acao = np.random.choice([0, 1, 2, 3])
         estado, recompensa, game_over, _ = env.step(acao)
 
-        # Verifica se o agente está em uma célula com tesouro ou armadilha
-        x, y = estado
-
-        if mapa[y][x] == 2:
-            mapa[y][x] = 0
+        if recompensa == 50 and mapa[estado[1]][estado[0]] == 0:
             exibir_mensagem("Tesouro coletado!")
+            mapa[estado[1]][estado[0]] = 0
 
-        elif mapa[y][x] == 3:
-            mapa[y][x] = 0
+        elif recompensa == -75:
             exibir_mensagem("Armadilha ativada!")
+            mapa[estado[1]][estado[0]] = 0
 
         if game_over:
+            if env.pontos <= 0:
+                exibir_mensagem("Game Over! Sem pontos.")
+            elif mapa[estado[1]][estado[0]] == 6:
+                exibir_mensagem("Você venceu!")
+            pygame.display.flip()
+            pygame.time.delay(2000)
             rodando = False
 
     pygame.quit()
