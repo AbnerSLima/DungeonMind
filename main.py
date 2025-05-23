@@ -44,12 +44,21 @@ contador_mensagem = 0
 def exibir_mensagem(texto):
     global mensagem, contador_mensagem
     mensagem = texto
-    contador_mensagem = 50  # Define tempo de exibição
+    contador_mensagem = 20  # Define tempo de exibição
 
 def desenhar_texto():
-    if mensagem:
-        texto_renderizado = fonte.render(mensagem, True, (LARANJA))
-        tela.blit(texto_renderizado, (10, ALTURA - 40))  # Exibe no canto inferior esquerdo
+    global contador_mensagem, mensagem
+
+    if mensagem and contador_mensagem > 0:
+        texto_renderizado = fonte.render(mensagem, True, PRETO)
+        tela.blit(texto_renderizado, (10, ALTURA - 40))
+        contador_mensagem -= 1  # Reduz o contador a cada frame
+    else:
+        mensagem = ""
+
+def desenhar_pontuacao(pontos):
+    texto_pontos = fonte.render(f"Score: {pontos}", True, (0, 0, 0))
+    tela.blit(texto_pontos, (10, 10))  # Exibe no canto superior esquerdo
 
 # Mapa fixo
 mapa = [
@@ -108,12 +117,26 @@ def rodar_jogo():
             TAMANHO_CELULA // 3
         )
 
+        desenhar_pontuacao(env.pontos)
+        desenhar_texto()
+
         pygame.display.flip()
-        clock.tick(3)  # Controla a velocidade do jogo (3 passos por segundo)
+        clock.tick(5)  # Controla a velocidade do jogo (3 passos por segundo)
 
         # Escolher ação aleatória
         acao = np.random.choice([0, 1, 2, 3])
         estado, recompensa, game_over, _ = env.step(acao)
+
+        # Verifica se o agente está em uma célula com tesouro ou armadilha
+        x, y = estado
+
+        if mapa[y][x] == 2:
+            mapa[y][x] = 0
+            exibir_mensagem("Tesouro coletado!")
+
+        elif mapa[y][x] == 3:
+            mapa[y][x] = 0
+            exibir_mensagem("Armadilha ativada!")
 
         if game_over:
             rodando = False
